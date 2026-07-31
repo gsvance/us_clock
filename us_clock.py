@@ -37,10 +37,10 @@ for i, name in enumerate(time_zone_names):
 while True:
 
     # Get the current UTC date and time
-    utc_dt = pytz.utc.localize(dt.datetime.utcnow())
+    utc_time = dt.datetime.now(dt.UTC)
 
     # Extract the current seconds value from the UTC time as an int
-    seconds = int(utc_dt.astimezone(pytz.utc).strftime("%S"))
+    seconds = int(utc_time.astimezone(pytz.utc).strftime("%S"))
 
     # Flash the colons in the clocks on or off once per second
     if seconds % 2 == 0:
@@ -49,7 +49,7 @@ while True:
         fmt = "%I %M %p\n%Z"
 
     for name in time_zone_names:
-        current_time = utc_dt.astimezone(time_zones[name])
+        current_time = utc_time.astimezone(time_zones[name])
         current_time_str = current_time.strftime(fmt)
         current_time_str = current_time_str.lstrip('0')
         time_zone_clocks[name].setText(current_time_str)
