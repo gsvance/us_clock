@@ -34,6 +34,13 @@ mountain_name.setTextColor("orange")
 arizona_name.setTextColor("orange")
 pacific_name.setTextColor("orange")
 
+# Change the font face to a monospace font
+eastern_name.setFace("courier")
+central_name.setFace("courier")
+mountain_name.setFace("courier")
+arizona_name.setFace("courier")
+pacific_name.setFace("courier")
+
 # Draw the label text in the window
 eastern_name.draw(win)
 central_name.draw(win)
@@ -56,11 +63,11 @@ arizona_time.setTextColor("orange")
 pacific_time.setTextColor("orange")
 
 # Change the font face to a monospace font
-#eastern_time.setFace("courier")
-#central_time.setFace("courier")
-#mountain_time.setFace("courier")
-#arizona_time.setFace("courier")
-#pacific_time.setFace("courier")
+eastern_time.setFace("courier")
+central_time.setFace("courier")
+mountain_time.setFace("courier")
+arizona_time.setFace("courier")
+pacific_time.setFace("courier")
 
 # Draw the clock text in the window
 eastern_time.draw(win)
