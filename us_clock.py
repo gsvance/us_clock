@@ -7,72 +7,31 @@ import graphics as gr  # Zelle's graphics for the GUI window
 import time  # For the sleep function
 
 
-# Set up the five timezones that I want
-eastern = pytz.timezone("US/Eastern")
-central = pytz.timezone("US/Central")
-mountain = pytz.timezone("US/Mountain")
-arizona = pytz.timezone("US/Arizona")
-pacific = pytz.timezone("US/Pacific")
+# Set up the five time zones and time zone info objects
+time_zone_names = ["Eastern", "Central", "Mountain", "Arizona", "Pacific"]
+time_zones = {name: pytz.timezone(f"US/{name}") for name in time_zone_names}
 
 # Open the window and make the background black
-win = gr.GraphWin("US Clock", 500, 100, True)
+win = gr.GraphWin("US Clock", 100 * len(time_zone_names), 100, True)
 win.setBackground("black")
 
-# Create label text for each of the five timezones
-eastern_name = gr.Text(gr.Point(450, 25), "Eastern")
-central_name = gr.Text(gr.Point(350, 25), "Central")
-mountain_name = gr.Text(gr.Point(250, 25), "Mountain")
-arizona_name = gr.Text(gr.Point(150, 25), "Arizona")
-pacific_name = gr.Text(gr.Point(50, 25), "Pacific")
+# Set up graphical text labels for each time zone
+for i, name in enumerate(time_zone_names):
+    x_coord = 100 * (len(time_zone_names) - i) - 50
+    label = gr.Text(gr.Point(x_coord, 25), name)
+    label.setTextColor("orange")
+    label.setFace("courier")
+    label.draw(win)
 
-# Make the label text orange
-eastern_name.setTextColor("orange")
-central_name.setTextColor("orange")
-mountain_name.setTextColor("orange")
-arizona_name.setTextColor("orange")
-pacific_name.setTextColor("orange")
-
-# Change the font face to a monospace font
-eastern_name.setFace("courier")
-central_name.setFace("courier")
-mountain_name.setFace("courier")
-arizona_name.setFace("courier")
-pacific_name.setFace("courier")
-
-# Draw the label text in the window
-eastern_name.draw(win)
-central_name.draw(win)
-mountain_name.draw(win)
-arizona_name.draw(win)
-pacific_name.draw(win)
-
-# Create text objects for each clock to be displayed
-eastern_time = gr.Text(gr.Point(450, 60), "")
-central_time = gr.Text(gr.Point(350, 60), "")
-mountain_time = gr.Text(gr.Point(250, 60), "")
-arizona_time = gr.Text(gr.Point(150, 60), "")
-pacific_time = gr.Text(gr.Point(50, 60), "")
-
-# Set the clock displays to the color orange too
-eastern_time.setTextColor("orange")
-central_time.setTextColor("orange")
-mountain_time.setTextColor("orange")
-arizona_time.setTextColor("orange")
-pacific_time.setTextColor("orange")
-
-# Change the font face to a monospace font
-eastern_time.setFace("courier")
-central_time.setFace("courier")
-mountain_time.setFace("courier")
-arizona_time.setFace("courier")
-pacific_time.setFace("courier")
-
-# Draw the clock text in the window
-eastern_time.draw(win)
-central_time.draw(win)
-mountain_time.draw(win)
-arizona_time.draw(win)
-pacific_time.draw(win)
+# Set up graphical text objects for each clock display
+time_zone_clocks = {}
+for i, name in enumerate(time_zone_names):
+    x_coord = 100 * (len(time_zone_names) - i) - 50
+    clock = gr.Text(gr.Point(x_coord, 60), "")
+    clock.setTextColor("orange")
+    clock.setFace("courier")
+    clock.draw(win)
+    time_zone_clocks[name] = clock
 
 # Infinite while loop to constantly update the time
 while True:
@@ -89,33 +48,11 @@ while True:
     else:
         fmt = "%I %M %p\n%Z"
 
-    # Calculate the time in each timezone from the UTC time
-    eastern_dt = utc_dt.astimezone(eastern)
-    central_dt = utc_dt.astimezone(central)
-    mountain_dt = utc_dt.astimezone(mountain)
-    arizona_dt = utc_dt.astimezone(arizona)
-    pacific_dt = utc_dt.astimezone(pacific)
-
-    # Format each of the clock text strings with the current time
-    eastern_str = eastern_dt.strftime(fmt)
-    central_str = central_dt.strftime(fmt)
-    mountain_str = mountain_dt.strftime(fmt)
-    arizona_str = arizona_dt.strftime(fmt)
-    pacific_str = pacific_dt.strftime(fmt)
-
-    # Remove any leading zeros on the hour in the times
-    eastern_str = eastern_str.lstrip('0')
-    central_str = central_str.lstrip('0')
-    mountain_str = mountain_str.lstrip('0')
-    arizona_str = arizona_str.lstrip('0')
-    pacific_str = pacific_str.lstrip('0')
-
-    # Update the text clock objects with the new time
-    eastern_time.setText(eastern_str)
-    central_time.setText(central_str)
-    mountain_time.setText(mountain_str)
-    arizona_time.setText(arizona_str)
-    pacific_time.setText(pacific_str)
+    for name in time_zone_names:
+        current_time = utc_dt.astimezone(time_zones[name])
+        current_time_str = current_time.strftime(fmt)
+        current_time_str = current_time_str.lstrip('0')
+        time_zone_clocks[name].setText(current_time_str)
 
     # Wait a little to avoid taking up all the CPU resources
     time.sleep(0.05)
