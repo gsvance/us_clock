@@ -50,8 +50,7 @@ while True:
 
     for name in time_zone_names:
         current_time = utc_time.astimezone(time_zones[name])
-        current_time_str = current_time.strftime(fmt)
-        current_time_str = current_time_str.lstrip('0')
+        current_time_str = current_time.strftime(fmt).lstrip('0')
         time_zone_clocks[name].setText(current_time_str)
 
     # Wait a little to avoid taking up all the CPU resources
