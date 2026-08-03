@@ -2,10 +2,9 @@
 """Simple graphical implementation of a five-timezone US clock"""
 
 import datetime as dt
-import time  # For the sleep function
+import tkinter as tk
+from tkinter import ttk
 from zoneinfo import ZoneInfo
-
-import graphics as gr  # Zelle's graphics for the GUI window
 
 
 # Time zone class to wrap together all the related info
@@ -16,39 +15,46 @@ class TimeZone:
         city_with_underscores = time_zone_city.replace(' ', '_')
         self.info = ZoneInfo(f"America/{city_with_underscores}")
 
-# Set up the five time zones sorted from east to west
+# Set up the five time zones sorted from west to east
 time_zones = [
-    TimeZone("Eastern", "New York"),
-    TimeZone("Central", "Chicago"),
-    TimeZone("Mountain", "Denver"),
-    TimeZone("Arizona", "Phoenix"),
     TimeZone("Pacific", "Los Angeles"),
+    TimeZone("Arizona", "Phoenix"),
+    TimeZone("Mountain", "Denver"),
+    TimeZone("Central", "Chicago"),
+    TimeZone("Eastern", "New York"),
 ]
 
-# Open the window and make the background black
-win = gr.GraphWin("US Clock", 100 * len(time_zones), 100, True)
-win.setBackground("black")
+# Create the root window and fill it with a frame widget
+root = tk.Tk()
+root.title("US Clock")
+frame = ttk.Frame(root)
+frame.grid(sticky="NSEW")
 
-# Set up graphical text labels for each time zone
-for i, time_zone in enumerate(time_zones):
-    x_coord = 100 * (len(time_zones) - i) - 50
-    label = gr.Text(gr.Point(x_coord, 25), time_zone.name)
-    label.setTextColor("orange")
-    label.setFace("courier")
-    label.draw(win)
+# Set up graphical text labels for each time zone name
+for column, time_zone in enumerate(time_zones):
+    label = ttk.Label(frame, text=time_zone.name)
+    label.grid(column=column, row=0, sticky="S", padx=20, pady=(10, 5))
 
-# Set up graphical text objects for each clock display
+# Set up graphical text labels for each clock display
 time_zone_clocks = {}
-for i, time_zone in enumerate(time_zones):
-    x_coord = 100 * (len(time_zones) - i) - 50
-    clock = gr.Text(gr.Point(x_coord, 60), "")
-    clock.setTextColor("orange")
-    clock.setFace("courier")
-    clock.draw(win)
+for column, time_zone in enumerate(time_zones):
+    clock = tk.StringVar()
+    label = ttk.Label(frame, textvariable=clock, justify="center")
+    label.grid(column=column, row=1, sticky="N", pady=(5, 10))
     time_zone_clocks[time_zone.name] = clock
 
-# Infinite while loop to constantly update the time
-while True:
+# Forbid resizing the window at all
+root.resizable(False, False)
+
+# Set styles for text and colors
+style = ttk.Style(root)
+style.configure("TFrame", background="black")
+style.configure(
+    "TLabel", font=("Courier", 13), background="black", foreground="orange",
+)
+
+# Define function that gets called every time the clocks need updating
+def update_clocks(*args):
 
     # Get the current UTC date and time
     utc_time = dt.datetime.now(dt.UTC)
@@ -65,11 +71,10 @@ while True:
     for time_zone in time_zones:
         current_time = utc_time.astimezone(time_zone.info)
         current_time_str = current_time.strftime(fmt).lstrip('0')
-        time_zone_clocks[time_zone.name].setText(current_time_str)
+        time_zone_clocks[time_zone.name].set(current_time_str)
 
-    # Wait a little to avoid taking up all the CPU resources
-    time.sleep(0.05)
+    # Wait a bit and then trigger this update function again
+    root.after(50, update_clocks)
 
-    # Break things off if the main window is ever closed
-    if win.isClosed():
-        break
+update_clocks()
+root.mainloop()
