@@ -81,7 +81,7 @@ class USClockApp:
         style = ttk.Style(self.root)
         style.configure('TFrame', background='black')
         style.configure(
-            'TLabel', font=('Courier', 13),
+            'TLabel', font=('Consolas', 13),
             background='black', foreground='orange',
         )
 
