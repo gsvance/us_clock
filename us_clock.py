@@ -11,29 +11,14 @@ from zoneinfo import ZoneInfo
 class TimeZone:
     """A class that wraps together all the related time zone information."""
 
-    __slots__ = ('_name', '_city', '_info')
+    __slots__ = ('name', 'city', 'info')
 
     def __init__(self, name: str, city: str) -> None:
         """Create a new time zone object using the given name and city."""
-        self._name: str = name
-        self._city: str = city
+        self.name: str = name
+        self.city: str = city
         city_with_underscores = city.replace(' ', '_')
-        self._info: ZoneInfo = ZoneInfo(f'America/{city_with_underscores}')
-
-    @property
-    def name(self) -> str:
-        """The name assigned to the time zone."""
-        return self._name
-
-    @property
-    def city(self) -> str:
-        """A representative city located in the time zone."""
-        return self._city
-
-    @property
-    def info(self) -> ZoneInfo:
-        """The ZoneInfo object corresponding to the time zone."""
-        return self._info
+        self.info: ZoneInfo = ZoneInfo(f'America/{city_with_underscores}')
 
 
 # Set up the relevant time zones sorted from west to east
