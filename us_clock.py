@@ -4,26 +4,46 @@
 import datetime as dt
 import tkinter as tk
 from tkinter import ttk
+from typing import Final
 from zoneinfo import ZoneInfo
 
 
-# Time zone class to wrap together all the related info
 class TimeZone:
-    def __init__(self, time_zone_name, time_zone_city):
-        self.name = time_zone_name
-        self.city = time_zone_city
-        city_with_underscores = time_zone_city.replace(' ', '_')
-        self.info = ZoneInfo(f"America/{city_with_underscores}")
+    """A class that wraps together all the related time zone information."""
+
+    __slots__ = ('_name', '_city', '_info')
+
+    def __init__(self, name: str, city: str) -> None:
+        """Create a new time zone object using the given name and city."""
+        self._name: str = name
+        self._city: str = city
+        city_with_underscores = city.replace(' ', '_')
+        self._info: ZoneInfo = ZoneInfo(f'America/{city_with_underscores}')
+
+    @property
+    def name(self) -> str:
+        """The name assigned to the time zone."""
+        return self._name
+
+    @property
+    def city(self) -> str:
+        """A representative city located in the time zone."""
+        return self._city
+
+    @property
+    def info(self) -> ZoneInfo:
+        """The ZoneInfo object corresponding to the time zone."""
+        return self._info
 
 
-# Set up the five time zones sorted from west to east
-time_zones = [
-    TimeZone("Pacific", "Los Angeles"),
-    TimeZone("Arizona", "Phoenix"),
-    TimeZone("Mountain", "Denver"),
-    TimeZone("Central", "Chicago"),
-    TimeZone("Eastern", "New York"),
-]
+# Set up the relevant time zones sorted from west to east
+TIME_ZONES: Final[tuple[TimeZone, ...]] = (
+    TimeZone('Pacific', 'Los Angeles'),
+    TimeZone('Arizona', 'Phoenix'),
+    TimeZone('Mountain', 'Denver'),
+    TimeZone('Central', 'Chicago'),
+    TimeZone('Eastern', 'New York'),
+)
 
 
 class USClockApp:
@@ -36,13 +56,13 @@ class USClockApp:
         frame.grid(sticky="NSEW")
 
         # Set up graphical text labels for each time zone name
-        for column, time_zone in enumerate(time_zones):
+        for column, time_zone in enumerate(TIME_ZONES):
             label = ttk.Label(frame, text=time_zone.name)
             label.grid(column=column, row=0, sticky="S", padx=20, pady=(10, 5))
 
         # Set up graphical text labels for each clock display
         self.time_zone_clocks = {}
-        for column, time_zone in enumerate(time_zones):
+        for column, time_zone in enumerate(TIME_ZONES):
             clock = tk.StringVar()
             label = ttk.Label(frame, textvariable=clock, justify="center")
             label.grid(column=column, row=1, sticky="N", pady=(5, 10))
@@ -78,7 +98,7 @@ class USClockApp:
         else:
             fmt = "%I %M %p\n%Z"
 
-        for time_zone in time_zones:
+        for time_zone in TIME_ZONES:
             current_time = utc_time.astimezone(time_zone.info)
             current_time_str = current_time.strftime(fmt).lstrip('0')
             self.time_zone_clocks[time_zone.name].set(current_time_str)
