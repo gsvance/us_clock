@@ -1,80 +1,116 @@
 #!/usr/bin/env py
-"""Simple graphical implementation of a five-timezone US clock"""
+"""A GUI app that shows clocks for five time zones across the continental US.
+
+All five clocks update in real time as long as the app is running. These time
+zones are displayed:
+
+- Pacific
+- Arizona (Mountain with no DST)
+- Mountain
+- Central
+- Eastern
+
+The app window is not interactive -- it is a very simple utility.
+"""
 
 import datetime as dt
 import tkinter as tk
 from tkinter import ttk
+from typing import Final
 from zoneinfo import ZoneInfo
 
 
-# Time zone class to wrap together all the related info
 class TimeZone:
-    def __init__(self, time_zone_name, time_zone_city):
-        self.name = time_zone_name
-        self.city = time_zone_city
-        city_with_underscores = time_zone_city.replace(' ', '_')
-        self.info = ZoneInfo(f"America/{city_with_underscores}")
+    """A class that wraps together all the related time zone information."""
 
-# Set up the five time zones sorted from west to east
-time_zones = [
-    TimeZone("Pacific", "Los Angeles"),
-    TimeZone("Arizona", "Phoenix"),
-    TimeZone("Mountain", "Denver"),
-    TimeZone("Central", "Chicago"),
-    TimeZone("Eastern", "New York"),
-]
+    __slots__ = ('name', 'city', 'info')
 
-# Create the root window and fill it with a frame widget
-root = tk.Tk()
-root.title("US Clock")
-frame = ttk.Frame(root)
-frame.grid(sticky="NSEW")
+    def __init__(self, name: str, city: str) -> None:
+        """Create a new time zone object using the given name and city."""
 
-# Set up graphical text labels for each time zone name
-for column, time_zone in enumerate(time_zones):
-    label = ttk.Label(frame, text=time_zone.name)
-    label.grid(column=column, row=0, sticky="S", padx=20, pady=(10, 5))
+        self.name: str = name
+        self.city: str = city
+        city_with_underscores = city.replace(' ', '_')
+        self.info: ZoneInfo = ZoneInfo(f'America/{city_with_underscores}')
 
-# Set up graphical text labels for each clock display
-time_zone_clocks = {}
-for column, time_zone in enumerate(time_zones):
-    clock = tk.StringVar()
-    label = ttk.Label(frame, textvariable=clock, justify="center")
-    label.grid(column=column, row=1, sticky="N", pady=(5, 10))
-    time_zone_clocks[time_zone.name] = clock
 
-# Forbid resizing the window at all
-root.resizable(False, False)
-
-# Set styles for text and colors
-style = ttk.Style(root)
-style.configure("TFrame", background="black")
-style.configure(
-    "TLabel", font=("Courier", 13), background="black", foreground="orange",
+# Set up the relevant time zones sorted from west to east
+TIME_ZONES: Final[tuple[TimeZone, ...]] = (
+    TimeZone('Pacific', 'Los Angeles'),
+    TimeZone('Arizona', 'Phoenix'),
+    TimeZone('Mountain', 'Denver'),
+    TimeZone('Central', 'Chicago'),
+    TimeZone('Eastern', 'New York'),
 )
 
-# Define function that gets called every time the clocks need updating
-def update_clocks(*args):
+# ZoneInfo object to use for UTC
+UTC_INFO: Final[ZoneInfo] = ZoneInfo('UTC')
 
-    # Get the current UTC date and time
-    utc_time = dt.datetime.now(dt.UTC)
 
-    # Extract the current seconds value from the UTC time as an int
-    seconds = int(utc_time.astimezone(ZoneInfo("UTC")).strftime("%S"))
+class USClockApp:
+    """A class that encapsulates the machinery of the Tkinter app."""
 
-    # Flash the colons in the clocks on or off once per second
-    if seconds % 2 == 0:
-        fmt = "%I:%M %p\n%Z"
-    else:
-        fmt = "%I %M %p\n%Z"
+    __slots__ = ('root', 'clocks')
 
-    for time_zone in time_zones:
-        current_time = utc_time.astimezone(time_zone.info)
-        current_time_str = current_time.strftime(fmt).lstrip('0')
-        time_zone_clocks[time_zone.name].set(current_time_str)
+    def __init__(self, root: tk.Tk) -> None:
+        """Initialize the US Clock app using the provided Tkinter root."""
 
-    # Wait a bit and then trigger this update function again
-    root.after(50, update_clocks)
+        # Grab control of the root window and fill it with a frame widget
+        self.root: tk.Tk = root
+        self.root.title('US Clock')
+        frame = ttk.Frame(self.root)
+        frame.grid(sticky='NSEW')
 
-update_clocks()
-root.mainloop()
+        # Set up graphical text labels for each time zone name
+        for column, time_zone in enumerate(TIME_ZONES):
+            label = ttk.Label(frame, text=time_zone.name)
+            label.grid(column=column, row=0, sticky='S', padx=20, pady=(10, 5))
+
+        # Set up graphical text labels for each clock display
+        self.clocks: dict[str, tk.StringVar] = {}
+        for column, time_zone in enumerate(TIME_ZONES):
+            clock = tk.StringVar()
+            label = ttk.Label(frame, textvariable=clock, justify='center')
+            label.grid(column=column, row=1, sticky='N', pady=(5, 10))
+            self.clocks[time_zone.name] = clock
+
+        # Forbid resizing the window
+        self.root.resizable(False, False)
+
+        # Set styles for text and colors
+        style = ttk.Style(self.root)
+        style.configure('TFrame', background='black')
+        style.configure(
+            'TLabel', font=('Courier', 13),
+            background='black', foreground='orange',
+        )
+
+        # Start the loop that updates the clocks
+        self.update_clocks()
+
+    def update_clocks(self) -> None:
+        """Tkinter will call this function regularly to update the clocks."""
+
+        # Get the current UTC date and time
+        utc_time = dt.datetime.now(UTC_INFO)
+
+        # Flash the colons in the clocks on or off once per second
+        if utc_time.second % 2 == 0:
+            format_str = '%I:%M %p\n%Z'
+        else:
+            format_str = '%I %M %p\n%Z'
+
+        # Update all of the clock displays with the current time
+        for time_zone in TIME_ZONES:
+            current_time = utc_time.astimezone(time_zone.info)
+            current_time_str = current_time.strftime(format_str).lstrip('0')
+            self.clocks[time_zone.name].set(current_time_str)
+
+        # Wait a bit and then trigger this function again
+        self.root.after(50, self.update_clocks)
+
+
+if __name__ == '__main__':
+    tkinter_root = tk.Tk()
+    app = USClockApp(tkinter_root)
+    tkinter_root.mainloop()
